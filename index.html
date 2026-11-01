@@ -56,11 +56,14 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* 原稿の書体：明朝体（Noto Serif JP）／ゴシック体（端末に入っているゴシック体） */
 @font-face{font-family:"GK Serif";src:url("notoserifjp-300-screen.woff2") format("woff2");font-weight:300;font-display:swap}
 @font-face{font-family:"GK Serif";src:url("notoserifjp-400-screen.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"GK Serif";src:url("notoserifjp-500-screen.woff2") format("woff2");font-weight:500;font-display:swap}
 @font-face{font-family:"GK Sans";src:url("notosansjp-300-screen.woff2") format("woff2");font-weight:300;font-display:swap}
 @font-face{font-family:"GK Sans";src:url("notosansjp-400-screen.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"GK Sans";src:url("notosansjp-500-screen.woff2") format("woff2");font-weight:500;font-display:swap}
 :root{--f-ms:"GK Serif","Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;--f-w:300}
 html.gothic{--f-ms:"GK Sans","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic",sans-serif}
 html.wregular{--f-w:400}
+html.wmedium{--f-w:500}
 body{background:var(--desk);color:var(--ink);font-family:var(--f-ui)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bar)}
 
@@ -400,7 +403,7 @@ html.syncwait main{opacity:.55;transition:opacity .2s .4s}
 <script>if('serviceWorker' in navigator){ addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }</script>
 </head>
 <body>
-<script>try{ const t=localStorage.getItem('genko-theme'); if(t==='light'||t==='dark') document.documentElement.setAttribute('data-theme',t); if(localStorage.getItem('genko-font')==='gothic') document.documentElement.classList.add('gothic'); if(localStorage.getItem('genko-weight')==='regular') document.documentElement.classList.add('wregular'); if(localStorage.getItem('genko-focus')==='1') document.documentElement.classList.add('focus'); }catch(e){}</script>
+<script>try{ const t=localStorage.getItem('genko-theme'); if(t==='light'||t==='dark') document.documentElement.setAttribute('data-theme',t); if(localStorage.getItem('genko-font')==='gothic') document.documentElement.classList.add('gothic'); if(localStorage.getItem('genko-weight')==='regular') document.documentElement.classList.add('wregular'); if(localStorage.getItem('genko-weight')==='medium') document.documentElement.classList.add('wmedium'); if(localStorage.getItem('genko-focus')==='1') document.documentElement.classList.add('focus'); }catch(e){}</script>
 <header class="bar">
   <input id="title" type="text" placeholder="題名（未設定）" autocomplete="off" spellcheck="false" aria-label="題名">
   <div class="tools" id="tools">
@@ -552,7 +555,7 @@ html.syncwait main{opacity:.55;transition:opacity .2s .4s}
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.15</div>
+    <div class="small">Version 1.16</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -632,6 +635,7 @@ html.syncwait main{opacity:.55;transition:opacity .2s .4s}
       <div class="pbtns" id="weightSel" role="group" aria-label="文字の太さ">
         <button type="button" data-weight="light" aria-pressed="false">細め</button>
         <button type="button" data-weight="regular" aria-pressed="false">標準</button>
+        <button type="button" data-weight="medium" aria-pressed="false">太め</button>
       </div>
       <div class="small">原稿用紙の文字の書体と太さを切り替えます。PDFも、ここで選んだ書体と太さで出力します。</div>
     </div>
@@ -2771,7 +2775,7 @@ $('syLogout').addEventListener('click',async()=>{
 /* ---------- PDF ---------- */
 const fontB64s={};
 /* PDFの書体：画面で選んだ書体と太さに合わせる */
-const pdfFontFile=()=>(fontKey==='gothic'?'notosansjp':'notoserifjp')+'-'+(weightKey==='regular'?'400':'300')+'-v.ttf';
+const pdfFontFile=()=>(fontKey==='gothic'?'notosansjp':'notoserifjp')+'-'+(weightKey==='medium'?'500':weightKey==='regular'?'400':'300')+'-v.ttf';
 function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=()=>rej(new Error('script')); document.head.appendChild(s); }); }
 async function ensurePdfKit(){
   if(!(window.jspdf&&window.jspdf.jsPDF)) await loadScript('jspdf.umd.min.js');
@@ -2902,10 +2906,11 @@ applyTheme();
 let fontKey='mincho';
 try{ if(localStorage.getItem('genko-font')==='gothic') fontKey='gothic'; }catch(e){}
 let weightKey='light';
-try{ if(localStorage.getItem('genko-weight')==='regular') weightKey='regular'; }catch(e){}
+try{ const w=localStorage.getItem('genko-weight'); if(w==='regular'||w==='medium') weightKey=w; }catch(e){}
 function applyFont(){
   document.documentElement.classList.toggle('gothic',fontKey==='gothic');
   document.documentElement.classList.toggle('wregular',weightKey==='regular');
+  document.documentElement.classList.toggle('wmedium',weightKey==='medium');
   document.querySelectorAll('#fontSel button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.font===fontKey)));
   document.querySelectorAll('#weightSel button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.weight===weightKey)));
 }

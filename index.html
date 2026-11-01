@@ -266,6 +266,8 @@ html.focus.ipad #bFocusOff{top:calc(env(safe-area-inset-top,0px) + 22px)}
 .ruby.dense{justify-content:center}
 .ruby::before{content:"";position:absolute;inset:0 calc(var(--cell)*-.08)}
 .ruby span{display:block;writing-mode:vertical-rl;text-orientation:mixed}
+.ch.rot{height:calc(var(--cell)*var(--k));text-orientation:mixed;overflow:visible}
+.ch.rot span{display:inline-block;white-space:pre;line-height:1;letter-spacing:0;font-size:calc(var(--cell)*.74*var(--fs,1));transform:scaleY(var(--sy,1))}
 .ch.tcy span{writing-mode:horizontal-tb;display:inline-block;white-space:nowrap;line-height:1;letter-spacing:0;transform:scaleX(var(--sx,1))}
 
 #sel{position:absolute;inset:0;pointer-events:none;z-index:3}
@@ -548,7 +550,7 @@ html.syncwait main{opacity:.55;transition:opacity .2s .4s}
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.13</div>
+    <div class="small">Version 1.14</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -1120,16 +1122,32 @@ function rubyRuns(d){
 const rubyParen=t=>t.replace(/｜([^｜《》\n]{1,20})《([^《》\n]+)》/g,'$1（$2）').replace(/《([^《》\n]+)》/g,'（$1）');
 /* 縦中横：半角の数字・記号が2〜4字続くときは、まとめて1マスに横並びで入れる（英字は対象外） */
 const TCY=/[\x21-\x40\x5B-\x60\x7B-\x7E]/;
-function tcyRuns(d){
+/* 欧文：半角の英字を1字でも含む、半角の英数字・記号のひと続き（あいだの半角の空白を含む）は、
+   90度回して縦に流し、2文字で1マスと数える。rot[k] には、そのひと続きの終わりの位置を入れる */
+const LATIN=/[\x21-\x7E]/, LETTER=/[A-Za-z]/;
+function rotRuns(d){
+  const r=new Array(d.length);
+  for(let k=0;k<d.length;){
+    if(!LATIN.test(d[k])){ k++; continue; }
+    let j=k, last=k, letter=false;
+    while(j<d.length&&(LATIN.test(d[j])||d[j]===' ')){ if(d[j]!==' '){ last=j; if(LETTER.test(d[j])) letter=true; } j++; }
+    const e=last+1;
+    if(letter) for(let q=k;q<e;q++) r[q]=e;
+    k=e;
+  }
+  return r;
+}
+function tcyRuns(d,rot){
   const t=new Array(d.length);
   for(let k=0;k<d.length;){
+    if(rot&&rot[k]){ k=rot[k]; continue; }
     if(TCY.test(d[k])){ let j=k+1; while(j<d.length&&TCY.test(d[j])) j++; if(j-k>=2&&j-k<=4) t[k]=j-k; k=j; }
     else k++;
   }
   return t;
 }
 function layout(d,opt){
-  const cols=[], slot=new Array(d.length), endMap={}, tcy=tcyRuns(d);
+  const cols=[], slot=new Array(d.length), endMap={}, rot=rotRuns(d), tcy=tcyRuns(d,rot);
   const rubies=rubyRuns(d), hidden=new Array(d.length), markup=new Array(d.length), shown=[];
   for(const g of rubies){
     for(let k=g.s;k<g.bs;k++) markup[k]=true; for(let k=g.be;k<g.e;k++) markup[k]=true;
@@ -1160,6 +1178,15 @@ function layout(d,opt){
     if(ch==='\n'){ col.end=i; endMap[i]=cols.length-1; i++; p++; open(true); continue; }
     if(hidden[i]){ slot[i]={c:cols.length-1,r:Math.min(col.row,ROWS)}; i++; continue; }
     if(col.row<ROWS && !col.hang.length){
+      if(rot[i]){
+        /* 欧文：行の残りに収まらないときは、次の行の頭から入れる（1行に収まらない長さのときだけ、行の途中で分ける） */
+        const m=rot[i]-i, need=Math.ceil(m/2), room=ROWS-col.row;
+        if(need>room&&col.cells.length&&need<=ROWS-WRAP[col.t]){ col.end=i; open(false); continue; }
+        const take=Math.min(m,room*2), k=Math.ceil(take/2);
+        col.cells.push({i,ch:d.slice(i,i+take).join(''),r:col.row,n:take,k,rot:true});
+        for(let q=0;q<take;q++) slot[i+q]={c:cols.length-1,r:col.row+Math.floor(q/2)};
+        col.row+=k; i+=take; continue;
+      }
       const n=tcy[i]||1;
       col.cells.push({i,ch:n>1?d.slice(i,i+n).join(''):ch,r:col.row,n}); for(let k=0;k<n;k++) slot[i+k]={c:cols.length-1,r:col.row}; col.row++; i+=n; continue;
     }
@@ -1178,10 +1205,13 @@ function layout(d,opt){
     const rd=d.slice(g.rs,g.re), tot=segs.reduce((a,x)=>a+x.n,0); let used=0, acc=0;
     segs.forEach((x,k)=>{ acc+=x.n; const upto=k===segs.length-1?rd.length:Math.round(rd.length*acc/tot); if(upto>used) ruby.push({c:x.c,r0:x.r0,r1:x.r1,text:rd.slice(used,upto).join(''),s:g.s}); used=Math.max(used,upto); });
   }
-  return {cols,slot,endMap,mainCol,frontEnd:ce,tcy,ruby,markup,cv:!!F.cv};
+  return {cols,slot,endMap,mainCol,frontEnd:ce,tcy,rot,ruby,markup,cv:!!F.cv};
 }
 function idxAt(col,r){
-  for(const x of col.cells) if(x.r>=r) return x.i;
+  for(const x of col.cells){
+    if(x.rot&&r>=x.r&&r<x.r+x.k) return x.i+Math.min(x.n,(r-x.r)*2);   /* 欧文のマスの中：2文字ごとに区切る */
+    if(x.r>=r) return x.i;
+  }
   if(r>=ROWS&&col.hang.length) return col.hang[0].i;
   return col.end;
 }
@@ -1304,7 +1334,8 @@ function render(){
       if(hnum[p*PER+lc]){ html+=`<span class="hno" style="--c:${lc}">${hnum[p*PER+lc]}</span>`; sig+='\u0005'+hnum[p*PER+lc]; }
       const red=p===0&&lc===0&&L.cv&&notes.coverRed?' red':'';   /* 表紙のいちばん右の行を朱書にする */
       for(const x of col.cells){
-        if(x.n>1) html+=`<span class="ch tcy${red}" style="--c:${lc};--r:${x.r};--sx:${x.n===2?1:x.n===3?.72:.56}"><span>${esc(x.ch)}</span></span>`;
+        if(x.rot) html+=`<span class="ch rot${red}" style="--c:${lc};--r:${x.r};--k:${x.k}"><span>${esc(x.ch)}</span></span>`;
+        else if(x.n>1) html+=`<span class="ch tcy${red}" style="--c:${lc};--r:${x.r};--sx:${x.n===2?1:x.n===3?.72:.56}"><span>${esc(x.ch)}</span></span>`;
         else html+=`<span class="ch${ASC.test(x.ch)?' up':''}${red}" style="--c:${lc};--r:${x.r}">${esc(x.ch)}</span>`;
         sig+=x.r+x.ch+(red?'\u0004':'');
       }
@@ -1320,7 +1351,10 @@ function render(){
       }
       sig+='\u0000';
     }
-    if(pages[p].sig!==sig){ pages[p].ink.innerHTML=html; pages[p].sig=sig; }
+    if(pages[p].sig!==sig){ pages[p].ink.innerHTML=html; pages[p].sig=sig;
+      /* 欧文：決まったマス数に収まらないときだけ、縦に縮める */
+      pages[p].ink.querySelectorAll('.ch.rot').forEach(el=>{ const sp=el.firstChild, lim=el.clientHeight*0.94, h=sp.offsetHeight; if(h>lim) el.style.setProperty('--sy',(lim/h).toFixed(3)); });
+    }
     const pn=p*PER>=L.mainCol?String(p-L.mainCol/PER+1):'';
     if(pages[p].pnoText!==pn){ pages[p].pno.textContent=pn; pages[p].pnoText=pn; }
   }
@@ -1615,7 +1649,8 @@ function findLints(){
   for(const x of P){
     for(let i=x.start;i<x.end;){
       if(L.tcy[i]){ i+=L.tcy[i]; continue; }   /* 縦中横にした文字は対象外 */
-      if(HALF(doc[i])){ let j=i+1; while(j<x.end&&HALF(doc[j])&&!L.tcy[j]) j++; out.push({a:i,b:j,k:'半角文字の混入'}); i=j; continue; }
+      if(L.rot&&L.rot[i]){ i=L.rot[i]; continue; }   /* 欧文（90度回して入れる英字）は対象外 */
+      if(HALF(doc[i])){ let j=i+1; while(j<x.end&&HALF(doc[j])&&!L.tcy[j]&&!(L.rot&&L.rot[j])) j++; out.push({a:i,b:j,k:'半角文字の混入'}); i=j; continue; }
       i++;
     }
   }
@@ -2758,6 +2793,14 @@ function buildPdf(){
     const w2=pdf.getTextWidth(str);
     pdf.text(str,x0+(size-w2)/2,y0+size/2+fs*0.36);
   }
+  /* 欧文：時計回りに90度回し、k マス分の長さに収まるように縮めて、中央にそろえる */
+  function drawRot(str,x0,y0,size,k){
+    const fs=size*0.74; pdf.setFontSize(fs*72/25.4);
+    const lim=k*size*0.94, w=pdf.getTextWidth(str), sc=w>lim?lim/w:1;   /* 長すぎるときは、画面と同じく文字の向きに沿って縮める */
+    pdf.saveGraphicsState();
+    pdf.text(str,x0+size/2-fs*0.32,y0+(k*size-w*sc)/2,sc<1?{angle:-90,horizontalScale:sc}:{angle:-90});
+    pdf.restoreGraphicsState();
+  }
   function drawCh(ch,x0,y0,size){
     const fs=size*0.82, s=fs/1000;
     pdf.setFontSize(fs*72/25.4);
@@ -2793,7 +2836,7 @@ function buildPdf(){
       if(hnum[p*PER+lc]){ pdf.setFontSize(10); pdf.text(String(hnum[p*PER+lc]),x+cs/2,top-cs*0.45,{align:'center'}); }   /* 柱番号：○の上の余白に */
       const red=p===0&&lc===0&&LL.cv&&notes.coverRed;   /* 表紙のいちばん右の行を朱書にする */
       if(red) pdf.setTextColor(200,40,30);
-      for(const c of col.cells){ if(c.n>1) drawTcy(c.ch,x,top+c.r*cs,cs); else if(c.ch!==' '&&c.ch!=='　') drawCh(c.ch,x,top+c.r*cs,cs); }
+      for(const c of col.cells){ if(c.rot) drawRot(c.ch,x,top+c.r*cs,cs,c.k); else if(c.n>1) drawTcy(c.ch,x,top+c.r*cs,cs); else if(c.ch!==' '&&c.ch!=='　') drawCh(c.ch,x,top+c.r*cs,cs); }
       if(red) pdf.setTextColor(0,0,0);
       for(const rb of LL.ruby) if(rb.c===p*PER+lc){
         /* ルビ：親文字の右側に、親文字の高さの中で均等に並べる */

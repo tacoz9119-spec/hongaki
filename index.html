@@ -466,7 +466,7 @@ html.syncwait main{opacity:.55;transition:opacity .2s .4s}
 
   <section class="tab" id="tabLint" hidden>
     <div class="tabhead"><span id="lCount"></span><span class="small">原稿の順</span></div>
-    <p class="small">句読点やカギ括弧の重複、閉じていないカッコ、半角文字、柱・ト書き・セリフの書式の誤りを表示します。</p>
+    <p class="small">句読点やカギ括弧の重複、閉じていないカッコ、半角の空白（英数字のあいだにあるものを除く）、柱・ト書き・セリフの書式の誤りを表示します。</p>
     <ol id="lList"></ol>
     <p class="small" id="lEmpty" hidden>誤りは見つかりません。</p>
     <p class="small" id="lIgn" hidden><span id="lIgnN"></span>　<button type="button" id="lIgnReset" class="lnk">すべて知らせるように戻す</button></p>
@@ -556,7 +556,7 @@ html.syncwait main{opacity:.55;transition:opacity .2s .4s}
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.17</div>
+    <div class="small">Version 1.19</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -1127,9 +1127,9 @@ function rubyRuns(d){
 }
 /* テキストの書き出し用：ルビを「親文字（よみ）」の形にする */
 const rubyParen=t=>t.replace(/｜([^｜《》\n]{1,20})《([^《》\n]+)》/g,'$1（$2）').replace(/《([^《》\n]+)》/g,'（$1）');
-/* 縦中横：半角の数字・記号が2〜4字続くときは、まとめて1マスに横並びで入れる（英字は対象外） */
+/* 縦中横：今は使わない（半角の英数字・記号は、すべて90度回して入れる）。仕組みだけ残しておく */
 const TCY=/[\x21-\x40\x5B-\x60\x7B-\x7E]/;
-/* 欧文：半角の英字を1字でも含む、半角の英数字・記号のひと続き（あいだの半角の空白を含む）は、
+/* 欧文：半角の英数字・記号のひと続き（1文字から。あいだの半角の空白を含む）は、
    90度回して縦に流し、2文字で1マスと数える。rot[k] には、そのひと続きの終わりの位置を入れる */
 const LATIN=/[\x21-\x7E]/, LETTER=/[A-Za-z]/;
 function rotRuns(d){
@@ -1139,20 +1139,12 @@ function rotRuns(d){
     let j=k, last=k, letter=false;
     while(j<d.length&&(LATIN.test(d[j])||d[j]===' ')){ if(d[j]!==' '){ last=j; if(LETTER.test(d[j])) letter=true; } j++; }
     const e=last+1;
-    if(letter) for(let q=k;q<e;q++) r[q]=e;
+    for(let q=k;q<e;q++) r[q]=e;
     k=e;
   }
   return r;
 }
-function tcyRuns(d,rot){
-  const t=new Array(d.length);
-  for(let k=0;k<d.length;){
-    if(rot&&rot[k]){ k=rot[k]; continue; }
-    if(TCY.test(d[k])){ let j=k+1; while(j<d.length&&TCY.test(d[j])) j++; if(j-k>=2&&j-k<=4) t[k]=j-k; k=j; }
-    else k++;
-  }
-  return t;
-}
+function tcyRuns(){ return []; }
 function layout(d,opt){
   const cols=[], slot=new Array(d.length), endMap={}, rot=rotRuns(d), tcy=tcyRuns(d,rot);
   const rubies=rubyRuns(d), hidden=new Array(d.length), markup=new Array(d.length), shown=[];
@@ -1653,14 +1645,12 @@ function findLints(){
       for(const x of st.splice(k)) if(x.c!==o) out.push({a:x.i,b:x.i+1,k:'閉じていないカッコ'});
     }
   }
-  /* 入力のミス：半角文字（半角の英数字・記号・カタカナ・空白）の混入 */
-  const HALF=c=>/[\x20-\x7E\uFF61-\uFF9F]/.test(c);
+  /* 半角の空白：英数字のあいだにあるもの（90度回して入れる部分）は対象外。単独のものや、英数字の前後にあるものを知らせる */
   for(const x of P){
-    for(let i=x.start;i<x.end;){
-      if(L.tcy[i]){ i+=L.tcy[i]; continue; }   /* 縦中横にした文字は対象外 */
-      if(L.rot&&L.rot[i]){ i=L.rot[i]; continue; }   /* 欧文（90度回して入れる英字）は対象外 */
-      if(HALF(doc[i])){ let j=i+1; while(j<x.end&&HALF(doc[j])&&!L.tcy[j]&&!(L.rot&&L.rot[j])) j++; out.push({a:i,b:j,k:'半角文字の混入'}); i=j; continue; }
-      i++;
+    for(let i=x.start;i<x.end;i++){
+      if(doc[i]!==' '||(L.rot&&L.rot[i])) continue;
+      let j=i+1; while(j<x.end&&doc[j]===' '&&!(L.rot&&L.rot[j])) j++;
+      out.push({a:i,b:j,k:'半角の空白'}); i=j-1;
     }
   }
   /* ルビの記号の誤り：「｜」「《」「》」が、正しいルビの形になっていない */

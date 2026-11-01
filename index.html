@@ -341,6 +341,7 @@ html.ipad #ta.composing{background:var(--paper);color:var(--ink)}
 .small{font-size:12px;color:var(--muted);line-height:1.6}
 .chk{display:flex;align-items:center;gap:10px;font-size:15px;min-height:28px;cursor:pointer}
 .pgroup .chk+.chk{margin-top:-4px}   /* チェック項目どうしの間を詰める */
+.pgroup h3+.chk{margin-top:-4px}   /* 見出しとチェック項目の間を、ボタンのときと同じ見た目の間隔にする */
 .chk input{width:20px;height:20px;accent-color:var(--accent);margin:0}
 html.nopno .pno{display:none}
 #fbText{width:100%;min-height:40vh;font-family:var(--f-text);font-size:16px;background:var(--desk);color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:8px;box-sizing:border-box}
@@ -555,7 +556,7 @@ html.syncwait main{opacity:.55;transition:opacity .2s .4s}
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.16</div>
+    <div class="small">Version 1.17</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

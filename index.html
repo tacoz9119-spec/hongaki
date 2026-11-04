@@ -565,7 +565,7 @@ html.ipadapp.syncwait main{opacity:1}   /* iPadのアプリでは、原稿を薄
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.34</div>
+    <div class="small">Version 1.35</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -2539,21 +2539,6 @@ function moveScene(k,t){
   };
   list.addEventListener('pointerup',end); list.addEventListener('pointercancel',end);
   list.addEventListener('click',e=>{ if(e.target.closest('.grip')){ e.preventDefault(); e.stopPropagation(); } },true);
-}
-/* iPadのアプリ：パネルの中の入力欄に触れたあと、パネルを閉じても画面の上端がぼやけたままになることがある。
-   集中モードを切り替えると消えるので、入力欄に触れたあとパネルを閉じたときに、集中モードの表示に一瞬だけ切り替えて戻す */
-{ let need=false, t=0;
-  document.addEventListener('focusin',e=>{ if(document.documentElement.classList.contains('ipadapp')&&e.target.closest&&e.target.closest('.scrim')&&e.target.matches('input,textarea')) need=true; });
-  const fix=()=>{
-    const h=document.documentElement;
-    if(!need||!h.classList.contains('ipadapp')||h.classList.contains('focus')) return;
-    if(![...document.querySelectorAll('.scrim')].every(x=>x.hidden)) return;
-    need=false; const y=window.scrollY;
-    h.classList.add('focus'); resize(); render(); window.scrollTo(0,y);
-    setTimeout(()=>{ h.classList.remove('focus'); resize(); render(); window.scrollTo(0,y); updPageNav(); },150);
-  };
-  const mo=new MutationObserver(()=>{ clearTimeout(t); t=setTimeout(fix,200); });
-  document.querySelectorAll('.scrim').forEach(x=>mo.observe(x,{attributes:true,attributeFilter:['hidden']}));
 }
 /* 集中モード（この端末に記憶） */
 function setFocusMode(on){

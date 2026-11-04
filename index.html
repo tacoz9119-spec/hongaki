@@ -565,7 +565,7 @@ html.ipadapp.syncwait main{opacity:1}   /* iPadのアプリでは、原稿を薄
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.33</div>
+    <div class="small">Version 1.34</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -2540,35 +2540,20 @@ function moveScene(k,t){
   list.addEventListener('pointerup',end); list.addEventListener('pointercancel',end);
   list.addEventListener('click',e=>{ if(e.target.closest('.grip')){ e.preventDefault(); e.stopPropagation(); } },true);
 }
-/* iPadのアプリ：画面の上端をぼかすかどうかを、iPadはページがスクロールしたときに、上端に重なっている表示を見て決める。
-   パネルを開いたまま入力欄に触れると、iPadがページを少しスクロールするため、半透明の幕が上端に重なった状態で「ぼかす」と決まり、
-   幕を閉じてもぼかしが残る（集中モードを切り替えるとぼかしが消えるのは、切り替えのときにページをスクロールするため）。
-   そこで、幕が消えたときなどに、ページを1ピクセルだけスクロールしてすぐ戻し、ツールバーを見て決め直させる */
-function nudgeBar(){
-  if(!document.documentElement.classList.contains('ipadapp')) return;
-  if(![...document.querySelectorAll('.scrim')].every(x=>x.hidden)) return;
-  const y=window.scrollY, max=document.documentElement.scrollHeight-window.innerHeight;
-  window.scrollTo(0, y<max-1 ? y+1 : Math.max(0,y-1));
-  requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo(0,y)));
-}
-{ let t=0, t2=0; const later=()=>{ clearTimeout(t); clearTimeout(t2); t=setTimeout(nudgeBar,150); t2=setTimeout(nudgeBar,700); };
-  const mo=new MutationObserver(()=>{ if([...document.querySelectorAll('.scrim')].every(x=>x.hidden)) later(); });
+/* iPadのアプリ：パネルの中の入力欄に触れたあと、パネルを閉じても画面の上端がぼやけたままになることがある。
+   集中モードを切り替えると消えるので、入力欄に触れたあとパネルを閉じたときに、集中モードの表示に一瞬だけ切り替えて戻す */
+{ let need=false, t=0;
+  document.addEventListener('focusin',e=>{ if(document.documentElement.classList.contains('ipadapp')&&e.target.closest&&e.target.closest('.scrim')&&e.target.matches('input,textarea')) need=true; });
+  const fix=()=>{
+    const h=document.documentElement;
+    if(!need||!h.classList.contains('ipadapp')||h.classList.contains('focus')) return;
+    if(![...document.querySelectorAll('.scrim')].every(x=>x.hidden)) return;
+    need=false; const y=window.scrollY;
+    h.classList.add('focus'); resize(); render(); window.scrollTo(0,y);
+    setTimeout(()=>{ h.classList.remove('focus'); resize(); render(); window.scrollTo(0,y); updPageNav(); },150);
+  };
+  const mo=new MutationObserver(()=>{ clearTimeout(t); t=setTimeout(fix,200); });
   document.querySelectorAll('.scrim').forEach(x=>mo.observe(x,{attributes:true,attributeFilter:['hidden']}));
-  new MutationObserver(()=>{ if(!document.documentElement.classList.contains('syncwait')) later(); }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
-  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') later(); });
-  document.addEventListener('focusout',e=>{ if(e.target.matches&&e.target.matches('input,textarea:not(#ta)')) later(); });
-  if(window.visualViewport) window.visualViewport.addEventListener('resize',later);
-  window.addEventListener('load',()=>setTimeout(nudgeBar,800));
-}
-/* iPadで、ログイン欄のメールアドレスに最初に触れると、何も描かれないキーボードが出ることがある（先にパスワードの欄に触れると起きない）。
-   そこで、最初の1回だけ、触れたときにパスワードの欄へ一度フォーカスを移してから、メールアドレスの欄にフォーカスを戻す */
-{ let primed=false;
-  document.addEventListener('touchend',e=>{
-    if(primed||!IPAD) return;
-    const m=e.target&&e.target.id==='syMail'?e.target:null, p=$('syPass');
-    if(!m||!p||document.activeElement===m) return;
-    primed=true; e.preventDefault(); p.focus({preventScroll:true}); m.focus({preventScroll:true});
-  },{capture:true,passive:false});
 }
 /* 集中モード（この端末に記憶） */
 function setFocusMode(on){

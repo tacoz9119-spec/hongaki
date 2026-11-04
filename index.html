@@ -564,7 +564,7 @@ html.syncwait main{opacity:.55;transition:opacity .2s .4s}
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.30</div>
+    <div class="small">Version 1.31</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -2538,6 +2538,22 @@ function moveScene(k,t){
   };
   list.addEventListener('pointerup',end); list.addEventListener('pointercancel',end);
   list.addEventListener('click',e=>{ if(e.target.closest('.grip')){ e.preventDefault(); e.stopPropagation(); } },true);
+}
+/* iPadのアプリ：画面の上端をぼかすかどうかを、iPadは上端に固定した帯の様子を見て決め、帯の大きさが変わるまで決め直さない。
+   パネルの半透明の幕や、同期の確認中の表示が重なっていた時点で「ぼかす」と決まると、幕が消えてもぼかしが残るので、
+   そうした表示が消えたときに、ツールバーの高さを一瞬だけ変えて決め直させる（集中モードを切り替えるとぼかしが消えるのと同じ仕組み） */
+function nudgeBar(){
+  if(!document.documentElement.classList.contains('ipadapp')) return;
+  const b=document.querySelector('.bar'); if(!b) return;
+  b.style.boxSizing='border-box'; b.style.height=(b.offsetHeight+1)+'px';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ b.style.height=''; b.style.boxSizing=''; }));
+}
+{ let t=0; const later=()=>{ clearTimeout(t); t=setTimeout(nudgeBar,120); };
+  const mo=new MutationObserver(()=>{ if([...document.querySelectorAll('.scrim')].every(x=>x.hidden)) later(); });
+  document.querySelectorAll('.scrim').forEach(x=>mo.observe(x,{attributes:true,attributeFilter:['hidden']}));
+  new MutationObserver(()=>{ if(!document.documentElement.classList.contains('syncwait')) later(); }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') later(); });
+  window.addEventListener('load',()=>setTimeout(nudgeBar,800));
 }
 /* 集中モード（この端末に記憶） */
 function setFocusMode(on){

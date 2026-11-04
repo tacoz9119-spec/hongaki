@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>脚本エディタ</title>
+<title>Hongaki</title>
 <meta name="theme-color" content="#F5F6F6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="脚本エディタ">
+<meta name="apple-mobile-web-app-title" content="Hongaki">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" id="touchIcon" href="icon-180.png">
@@ -564,7 +564,7 @@ html.syncwait main{opacity:.55;transition:opacity .2s .4s}
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.22</div>
+    <div class="small">Version 1.25</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -2714,7 +2714,7 @@ $('pBackup').addEventListener('click',async()=>{
   await saveLocalNow();
   const docs=liveList().map(r=>({id:r.id,title:r.title||'',d:r.d||'',y:r.y||'',p:r.p||'',m:r.m||{},n:r.n||{},cv:!!r.cv,c:r.c||0,updatedAt:r.updatedAt}));
   const d=new Date(), stamp=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-  await saveFile(`脚本バックアップ-${stamp}.json`,JSON.stringify({app:'genko-script',version:1,exportedAt:Date.now(),docs}),'application/json');
+  await saveFile(`Hongaki-backup-${stamp}.json`,JSON.stringify({app:'genko-script',version:1,exportedAt:Date.now(),docs}),'application/json');
 });
 $('pRestore').addEventListener('click',()=>$('jsonIn').click());
 $('jsonIn').addEventListener('change',async()=>{

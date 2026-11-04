@@ -396,6 +396,7 @@ html.nogrid .col,html.nogrid .frame{display:none}
 @media (max-width:1100px){ #title{flex-basis:16vw} html:not(.ipadapp) #title{flex-basis:11vw;min-width:80px} }
 html.syncwait .tools,html.syncwait main,html.syncwait #outline{pointer-events:none}
 html.syncwait main{opacity:.55;transition:opacity .2s .4s}
+html.ipadapp.syncwait main{opacity:1}   /* iPadのアプリでは、原稿を薄くする表示が上端のぼかしのきっかけになることがあるため使わない */
 /* メモの箱は、パネルの残りの高さいっぱいに広げる（画面の大きさに合わせて伸び縮み） */
 #plotBox{flex:1 1 auto;min-height:0}
 #nt-plot{flex:1 1 auto;min-height:12em;resize:none}
@@ -564,7 +565,7 @@ html.syncwait main{opacity:.55;transition:opacity .2s .4s}
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.31</div>
+    <div class="small">Version 1.32</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -2545,8 +2546,8 @@ function moveScene(k,t){
 function nudgeBar(){
   if(!document.documentElement.classList.contains('ipadapp')) return;
   const b=document.querySelector('.bar'); if(!b) return;
-  b.style.boxSizing='border-box'; b.style.height=(b.offsetHeight+1)+'px';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ b.style.height=''; b.style.boxSizing=''; }));
+  b.style.boxSizing='border-box'; b.style.height=(b.offsetHeight+2)+'px';
+  setTimeout(()=>{ b.style.height=''; b.style.boxSizing=''; },400);   /* 一瞬では決め直さないことがあるので、0.4秒保つ */
 }
 { let t=0; const later=()=>{ clearTimeout(t); t=setTimeout(nudgeBar,120); };
   const mo=new MutationObserver(()=>{ if([...document.querySelectorAll('.scrim')].every(x=>x.hidden)) later(); });
@@ -2669,7 +2670,7 @@ $('lookPanel').addEventListener('click',e=>{ if(e.target===$('lookPanel')) $('lo
 
 /* ログインの入力欄は、「その他」を開いてログイン画面を表示している間だけ置く。
    ページにパスワード欄があると、iPadのSafariが本文の入力中にもパスワードの候補を出すため */
-const SY_FIELDS='<input id="syMail" type="email" placeholder="メールアドレス" autocomplete="username" aria-label="メールアドレス">'+
+const SY_FIELDS='<input id="syMail" type="email" inputmode="email" placeholder="メールアドレス" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="メールアドレス">'+
   '<input id="syPass" type="password" placeholder="パスワード（6文字以上）" autocomplete="current-password" aria-label="パスワード">';
 function syncFields(){
   const want=!$('docsPanel').hidden&&!$('syncOut').hidden, box=$('syFields');

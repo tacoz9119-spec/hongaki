@@ -16,4 +16,4 @@ const firebaseConfig = {  apiKey: "AIzaSyBz9d7UDB91Jz_7i3-7AUu7x88l-i3ctFs",  au
 };
 
 /* ↓ここから下は変更しないでください */
-window.GENKO_FIREBASE = (typeof firebaseConfig !== 'undefined') ? firebaseConfig : null;
+window.HONGAKI_FIREBASE = (typeof firebaseConfig !== 'undefined') ? firebaseConfig : null;

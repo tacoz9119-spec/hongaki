@@ -413,7 +413,9 @@ html.ipadapp.syncwait main{opacity:1}   /* iPadのアプリでは、原稿を薄
 <script>if('serviceWorker' in navigator){ addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }</script>
 </head>
 <body>
-<script>try{ const t=localStorage.getItem('genko-theme'); if(t==='light'||t==='dark') document.documentElement.setAttribute('data-theme',t); if(localStorage.getItem('genko-font')==='gothic') document.documentElement.classList.add('gothic'); if(localStorage.getItem('genko-weight')==='regular') document.documentElement.classList.add('wregular'); if(localStorage.getItem('genko-weight')==='medium') document.documentElement.classList.add('wmedium'); if(localStorage.getItem('genko-focus')==='1') document.documentElement.classList.add('focus'); }catch(e){}</script>
+<script>/* 端末内の設定の保存名を「genko-…」から「hongaki-…」に変えた（Version 1.36）。古い名前の設定があれば移す */
+try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].map(k=>['genko-'+k,'hongaki-'+k]).forEach(([o,n])=>{ const v=localStorage.getItem(o); if(v!==null){ if(localStorage.getItem(n)===null) localStorage.setItem(n,v); localStorage.removeItem(o); } }); }catch(e){}</script>
+<script>try{ const t=localStorage.getItem('hongaki-theme'); if(t==='light'||t==='dark') document.documentElement.setAttribute('data-theme',t); if(localStorage.getItem('hongaki-font')==='gothic') document.documentElement.classList.add('gothic'); if(localStorage.getItem('hongaki-weight')==='regular') document.documentElement.classList.add('wregular'); if(localStorage.getItem('hongaki-weight')==='medium') document.documentElement.classList.add('wmedium'); if(localStorage.getItem('hongaki-focus')==='1') document.documentElement.classList.add('focus'); }catch(e){}</script>
 <header class="bar">
   <input id="title" type="text" placeholder="題名（未設定）" autocomplete="off" spellcheck="false" aria-label="題名">
   <div class="tools" id="tools">
@@ -565,7 +567,7 @@ html.ipadapp.syncwait main{opacity:1}   /* iPadのアプリでは、原稿を薄
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.35</div>
+    <div class="small">Version 1.36</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -714,7 +716,6 @@ html.ipadapp.syncwait main{opacity:1}   /* iPadのアプリでは、原稿を薄
 
 (function(){
 const ROWS=20, PER=20, S='​', PART=30000;
-const KEY='genko-script-v3', KEY_V2='genko-script-v2', KEY_V1='genko-script-v1';
 const HANG=new Set([...'、。，．,.」』）〕】〉》］｝”’)]']);
 const ASC=/^[\x21-\x7E]$/;
 /* plain＝書式なし。casthead／cast＝登場人物表、synhead／syn＝あらすじのページ（見出しは3字下げ、中身は字下げなし） */
@@ -879,7 +880,8 @@ const countChars=a=>a.reduce((n,ch)=>n+(ch==='\n'?0:1),0);
    ・同期は通信できるときに行う。通信できない間の変更は端末にためておき、つながったら送る
    ・起動時やアプリに戻ったときは、開いている原稿の最新の版を確かめてから書けるようにする
    ・それでも両方の端末で同期前に書き換えた場合は、サーバーにある版を元の原稿とし、この端末の版を「（iPadで書いた版）」などとして残す */
-const CFG=(window.GENKO_FIREBASE&&window.GENKO_FIREBASE.apiKey)?window.GENKO_FIREBASE:null;
+const FBC=window.HONGAKI_FIREBASE||window.GENKO_FIREBASE;   /* GENKO_FIREBASE は古い firebase-config.js の名前 */
+const CFG=(FBC&&FBC.apiKey)?FBC:null;
 let mode='local';            /* local：同期の設定なし／signedout：未ログイン／online：同期中／offline：通信できない */
 let localPending=false, saveErr=null, pushing=false, lastSync=0, editVersion=0;
 const recs=new Map();        /* 端末内の全原稿 id → {id,title,d,y,p,m,cv,c,updatedAt,dirty,remoteAt,rparts,deleted,sample} */
@@ -889,9 +891,9 @@ const DEVICE=()=>navigator.maxTouchPoints>1?'iPad':'Mac';
 
 function idbOpen(){
   return new Promise((res,rej)=>{
-    const r=indexedDB.open('genko-script',1);
+    const r=indexedDB.open('hongaki-script',1);
     r.onupgradeneeded=()=>{ r.result.createObjectStore('docs',{keyPath:'id'}); r.result.createObjectStore('kv'); };
-    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+    r.onsuccess=()=>{ const db=r.result; idbMoveFrom('genko-script',db,['docs','kv']).then(()=>res(db)); }; r.onerror=()=>rej(r.error);
   });
 }
 function tx(store,rw,fn){
@@ -1247,11 +1249,11 @@ function viewH(){ return window.innerHeight; }  /* 画面キーボードの出�
 const SIZE_SCALE={l:1,m:0.85,s:0.72};   /* マスに対する文字の大きさの割合（1＝マスの約8割） */
 let sizeKey='m';
 try{
-  const v=localStorage.getItem('genko-size2');
+  const v=localStorage.getItem('hongaki-size2');
   if(v==='l'||v==='m'||v==='s') sizeKey=v;
   else{ /* 以前の設定（一段階小さい割合）を、同じ大きさの新しい段階に置き換える */
-    const o=localStorage.getItem('genko-size'); sizeKey=o==='m'||o==='s'?'s':'m';
-    localStorage.setItem('genko-size2',sizeKey);
+    const o=localStorage.getItem('hongaki-size'); sizeKey=o==='m'||o==='s'?'s':'m';
+    localStorage.setItem('hongaki-size2',sizeKey);
   }
 }catch(e){}
 function resize(){
@@ -1467,13 +1469,13 @@ function scrollToCaret(){
 
 /* ---------- サイドパネル：柱一覧・場面メモ・人物・検索 ---------- */
 let tab='scenes';
-try{ const t=localStorage.getItem('genko-tab'); if(t==='people'||t==='scenes'||t==='notes'||t==='lint') tab=t; }catch(e){}
+try{ const t=localStorage.getItem('hongaki-tab'); if(t==='people'||t==='scenes'||t==='notes'||t==='lint') tab=t; }catch(e){}
 function setTab(t){
   tab=t;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
   $('tabScenes').hidden=t!=='scenes';
   $('tabPeople').hidden=t!=='people'; $('tabNotes').hidden=t!=='notes'; $('tabFind').hidden=t!=='find'; $('tabLint').hidden=t!=='lint';
-  if(t!=='find'){ try{ localStorage.setItem('genko-tab',t); }catch(e){} }
+  if(t!=='find'){ try{ localStorage.setItem('hongaki-tab',t); }catch(e){} }
   if(L) render();
 }
 document.querySelector('.tabs').addEventListener('click',e=>{
@@ -2346,12 +2348,39 @@ const HIST_DEV=DEVICE, HIST_CUR=()=>Object.assign(editorRec(),{sample:!!(recs.ge
 const HIST_KEEP=5, HIST_DAYS=30, HIST_EVERY=30*60*1000;
 const HIST_WHY={open:'開いたとき',remote:'別の端末の変更を受け取る前',auto:'書いている途中',deleted:'別の端末で削除される前',before:'以前の版に戻す前',castsync:'人物一覧を登場人物表に合わせる前'};
 let hdb=null, hLastAt=0, hLastVer=-1, histDocId=null, histSel=null;
+/* 端末内の保存場所の名前を「genko-…」から「hongaki-…」に変えた（Version 1.36）。
+   古い名前の保存場所が残っていれば、中身を新しい保存場所へ写してから、古い保存場所を消す。
+   新しい保存場所にすでに同じものがあるときは、新しいほうを残す */
+function idbMoveFrom(oldName,db,stores){
+  return new Promise(done=>{
+    let r; try{ r=indexedDB.open(oldName); }catch(e){ done(); return; }
+    r.onupgradeneeded=e=>{ if(e.oldVersion===0){ try{ r.transaction.abort(); }catch(_){} } };   /* 古い保存場所がなければ、作らずにやめる */
+    r.onerror=e=>{ if(e&&e.preventDefault) e.preventDefault(); done(); };
+    r.onblocked=()=>done();
+    r.onsuccess=()=>{
+      const o=r.result, names=stores.filter(n=>o.objectStoreNames.contains(n)&&db.objectStoreNames.contains(n));
+      if(!names.length){ o.close(); try{ indexedDB.deleteDatabase(oldName); }catch(e){} done(); return; }
+      const data={}, t=o.transaction(names,'readonly');
+      names.forEach(n=>{ const s=t.objectStore(n), v=s.getAll(), k=s.getAllKeys(); data[n]={}; v.onsuccess=()=>{ data[n].v=v.result; }; k.onsuccess=()=>{ data[n].k=k.result; }; });
+      t.onerror=t.onabort=()=>{ o.close(); done(); };
+      t.oncomplete=()=>{
+        o.close();
+        const w=db.transaction(names,'readwrite');
+        names.forEach(n=>{ const s=w.objectStore(n), {v,k}=data[n];
+          (v||[]).forEach((x,i)=>{ const q=s.keyPath!=null?s.add(x):s.add(x,k[i]); q.onerror=e=>{ e.preventDefault(); e.stopPropagation(); }; }); });
+        w.oncomplete=()=>{ try{ indexedDB.deleteDatabase(oldName); }catch(e){} done(); };   /* 写し終えたときだけ、古い保存場所を消す */
+        w.onerror=e=>{ if(e&&e.preventDefault) e.preventDefault(); };
+        w.onabort=()=>done();
+      };
+    };
+  });
+}
 function histOpen(){
   if(hdb) return Promise.resolve(hdb);
   return new Promise((res,rej)=>{
-    let r; try{ r=indexedDB.open('genko-history',1); }catch(e){ rej(e); return; }
+    let r; try{ r=indexedDB.open('hongaki-history',1); }catch(e){ rej(e); return; }
     r.onupgradeneeded=()=>{ const s=r.result.createObjectStore('snaps',{keyPath:'k',autoIncrement:true}); s.createIndex('doc','doc'); };
-    r.onsuccess=()=>{ hdb=r.result; res(hdb); }; r.onerror=()=>rej(r.error);
+    r.onsuccess=()=>{ const db=r.result; idbMoveFrom('genko-history',db,['snaps']).then(()=>{ hdb=db; res(db); }); }; r.onerror=()=>rej(r.error);
   });
 }
 function htx(rw,fn){
@@ -2545,7 +2574,7 @@ function setFocusMode(on){
   /* 切り替える前に画面に出ていたページを、切り替えたあとも表示する（カーソルのページには飛ばない） */
   const k=pages.length?curPageIdx():0;
   document.documentElement.classList.toggle('focus',on);
-  try{ localStorage.setItem('genko-focus',on?'1':''); }catch(e){}
+  try{ localStorage.setItem('hongaki-focus',on?'1':''); }catch(e){}
   resize(); render();
   if(pages[k]){ const barB=topEdge(); window.scrollBy(0,pages[k].el.getBoundingClientRect().top-barB-10); }
   updPageNav(); ta.focus({preventScroll:true});
@@ -2715,13 +2744,13 @@ $('pBackup').addEventListener('click',async()=>{
   await saveLocalNow();
   const docs=liveList().map(r=>({id:r.id,title:r.title||'',d:r.d||'',y:r.y||'',p:r.p||'',m:r.m||{},n:r.n||{},cv:!!r.cv,c:r.c||0,updatedAt:r.updatedAt}));
   const d=new Date(), stamp=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-  await saveFile(`Hongaki-backup-${stamp}.json`,JSON.stringify({app:'genko-script',version:1,exportedAt:Date.now(),docs}),'application/json');
+  await saveFile(`Hongaki-backup-${stamp}.json`,JSON.stringify({app:'hongaki',version:1,exportedAt:Date.now(),docs}),'application/json');
 });
 $('pRestore').addEventListener('click',()=>$('jsonIn').click());
 $('jsonIn').addEventListener('change',async()=>{
   const f=$('jsonIn').files[0]; $('jsonIn').value=''; if(!f) return;
   let data; try{ data=JSON.parse(await readText(f)); }catch(e){ toast('バックアップのファイルを読み込めませんでした'); return; }
-  if(!data||data.app!=='genko-script'||!Array.isArray(data.docs)){ toast('このエディタのバックアップではありません'); return; }
+  if(!data||(data.app!=='hongaki'&&data.app!=='genko-script')||!Array.isArray(data.docs)){ toast('このエディタのバックアップではありません'); return; }
   await saveLocalNow();
   let added=0, same=0;
   for(const x of data.docs){
@@ -2788,7 +2817,7 @@ async function ensurePdfKit(){
 }
 function buildPdf(){
   const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
-  const ff=pdfFontFile(); pdf.addFileToVFS(ff,fontB64s[ff]); pdf.addFont(ff,'Genko','normal','Identity-H'); pdf.setFont('Genko','normal');
+  const ff=pdfFontFile(); pdf.addFileToVFS(ff,fontB64s[ff]); pdf.addFont(ff,'Hongaki','normal','Identity-H'); pdf.setFont('Hongaki','normal');
   pdf.setProperties({title:title||'無題'});
   /* 文字は約16pt（マス6.88mm）。20字分の高さを上下中央に置き、左右は行間で全体の横幅（198.3mm）を保つ */
   const PW=297, PH=210, cs=6.88, gridW=198.3, step=(gridW-cs)/(PER-1), top=(PH-ROWS*cs)/2, right=(PW+gridW)/2;
@@ -2878,14 +2907,14 @@ window.addEventListener('resize',()=>{ clearTimeout(rzT); rzT=setTimeout(resize,
 
 /* ページ番号の表示・非表示（この端末に記憶） */
 let showPno=true;
-try{ showPno=localStorage.getItem('genko-pno')!=='0'; }catch(e){}
+try{ showPno=localStorage.getItem('hongaki-pno')!=='0'; }catch(e){}
 function applyPno(){ document.documentElement.classList.toggle('nopno',!showPno); $('pPno').checked=showPno; }
-$('pPno').addEventListener('change',()=>{ showPno=$('pPno').checked; try{ localStorage.setItem('genko-pno',showPno?'1':'0'); }catch(e){} applyPno(); });
+$('pPno').addEventListener('change',()=>{ showPno=$('pPno').checked; try{ localStorage.setItem('hongaki-pno',showPno?'1':'0'); }catch(e){} applyPno(); });
 applyPno();
 
 /* 配色：端末の設定に合わせる／ライト／ダーク（この端末に記憶） */
 let themeKey='auto';
-try{ const t=localStorage.getItem('genko-theme'); if(t==='light'||t==='dark') themeKey=t; }catch(e){}
+try{ const t=localStorage.getItem('hongaki-theme'); if(t==='light'||t==='dark') themeKey=t; }catch(e){}
 const darkMQ=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):null;
 function applyTheme(){
   const root=document.documentElement;
@@ -2896,7 +2925,7 @@ function applyTheme(){
 }
 $('themeSel').addEventListener('click',e=>{
   const b=e.target.closest('button[data-theme]'); if(!b) return;
-  themeKey=b.dataset.theme; try{ localStorage.setItem('genko-theme',themeKey); }catch(e){}
+  themeKey=b.dataset.theme; try{ localStorage.setItem('hongaki-theme',themeKey); }catch(e){}
   applyTheme();
 });
 if(darkMQ&&darkMQ.addEventListener) darkMQ.addEventListener('change',applyTheme);
@@ -2904,9 +2933,9 @@ applyTheme();
 
 /* 書体：明朝体／ゴシック体（この端末に記憶） */
 let fontKey='mincho';
-try{ if(localStorage.getItem('genko-font')==='gothic') fontKey='gothic'; }catch(e){}
+try{ if(localStorage.getItem('hongaki-font')==='gothic') fontKey='gothic'; }catch(e){}
 let weightKey='light';
-try{ const w=localStorage.getItem('genko-weight'); if(w==='regular'||w==='medium') weightKey=w; }catch(e){}
+try{ const w=localStorage.getItem('hongaki-weight'); if(w==='regular'||w==='medium') weightKey=w; }catch(e){}
 function applyFont(){
   document.documentElement.classList.toggle('gothic',fontKey==='gothic');
   document.documentElement.classList.toggle('wregular',weightKey==='regular');
@@ -2916,12 +2945,12 @@ function applyFont(){
 }
 $('weightSel').addEventListener('click',e=>{
   const b=e.target.closest('button[data-weight]'); if(!b) return;
-  weightKey=b.dataset.weight; try{ localStorage.setItem('genko-weight',weightKey); }catch(err){}
+  weightKey=b.dataset.weight; try{ localStorage.setItem('hongaki-weight',weightKey); }catch(err){}
   applyFont(); if(typeof fitTA==='function') fitTA();
 });
 $('fontSel').addEventListener('click',e=>{
   const b=e.target.closest('button[data-font]'); if(!b) return;
-  fontKey=b.dataset.font; try{ localStorage.setItem('genko-font',fontKey); }catch(err){}
+  fontKey=b.dataset.font; try{ localStorage.setItem('hongaki-font',fontKey); }catch(err){}
   applyFont(); if(typeof fitTA==='function') fitTA();
 });
 applyFont();
@@ -2929,21 +2958,21 @@ applyFont();
 function applySizeUI(){ document.querySelectorAll('#sizeSel button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.size===sizeKey))); }
 $('sizeSel').addEventListener('click',e=>{
   const b=e.target.closest('button[data-size]'); if(!b) return;
-  sizeKey=b.dataset.size; try{ localStorage.setItem('genko-size2',sizeKey); }catch(err){}
+  sizeKey=b.dataset.size; try{ localStorage.setItem('hongaki-size2',sizeKey); }catch(err){}
   applySizeUI(); resize();
 });
 applySizeUI();
 /* 原稿用紙のマス目の表示・非表示（この端末に記憶）。文字の位置は変わらない */
 /* 校正の色付けの表示・非表示（この端末に記憶） */
 let showLint=true;
-try{ showLint=localStorage.getItem('genko-lint')!=='0'; }catch(e){}
+try{ showLint=localStorage.getItem('hongaki-lint')!=='0'; }catch(e){}
 function applyLint(){ document.documentElement.classList.toggle('nolint',!showLint); $('pLint').checked=showLint; drawLint(); }
-$('pLint').addEventListener('change',()=>{ showLint=$('pLint').checked; try{ localStorage.setItem('genko-lint',showLint?'1':'0'); }catch(e){} applyLint(); });
+$('pLint').addEventListener('change',()=>{ showLint=$('pLint').checked; try{ localStorage.setItem('hongaki-lint',showLint?'1':'0'); }catch(e){} applyLint(); });
 applyLint();
 let showGrid=true;
-try{ showGrid=localStorage.getItem('genko-grid')!=='0'; }catch(e){}
+try{ showGrid=localStorage.getItem('hongaki-grid')!=='0'; }catch(e){}
 function applyGrid(){ document.documentElement.classList.toggle('nogrid',!showGrid); $('pGrid').checked=showGrid; }
-$('pGrid').addEventListener('change',()=>{ showGrid=$('pGrid').checked; try{ localStorage.setItem('genko-grid',showGrid?'1':'0'); }catch(e){} applyGrid(); });
+$('pGrid').addEventListener('change',()=>{ showGrid=$('pGrid').checked; try{ localStorage.setItem('hongaki-grid',showGrid?'1':'0'); }catch(e){} applyGrid(); });
 applyGrid();
 
 /* ---------- 起動 ---------- */

@@ -567,7 +567,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.37</div>
+    <div class="small">Version 1.38</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -2819,8 +2819,8 @@ function buildPdf(){
   const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
   const ff=pdfFontFile(); pdf.addFileToVFS(ff,fontB64s[ff]); pdf.addFont(ff,'Hongaki','normal','Identity-H'); pdf.setFont('Hongaki','normal');
   pdf.setProperties({title:title||'無題'});
-  /* 文字は12pt（マス約5.16mm）。行と行の間隔（行送り約10.08mm）は、16ptだったときのまま変えず、20字分の高さを上下中央に置く */
-  const PW=297, PH=210, cs0=6.88, gridW=198.3, step=(gridW-cs0)/(PER-1), cs=(12*25.4/72)/0.82, top=(PH-ROWS*cs)/2, right=(PW+gridW)/2-(cs0-cs)/2;
+  /* 文字は11pt。字と字の間隔は12ptだったときのマス（約5.16mm）のまま、行送りは約10.3mm。20字分の高さと全体の横幅を、それぞれページの中央に置く */
+  const PW=297, PH=210, cs=(12*25.4/72)/0.82, FR=11/12, step=10.3, gridW=step*(PER-1)+cs, top=(PH-ROWS*cs)/2, right=(PW+gridW)/2;   /* FR：マスに対する字の縮め方（12pt→11pt） */
   const pnoY=(top+ROWS*cs+PH)/2+1.2;  /* ページ番号：下余白の中央 */
   /* 縦中横：マスの幅に収まる大きさで、横書きのまま中央に置く */
   function drawTcy(str,x0,y0,size){
@@ -2832,7 +2832,7 @@ function buildPdf(){
   }
   /* 欧文：時計回りに90度回し、1字を半マスに入れる（幅の広い文字は縮める）。字数が奇数のときは前後に4分の1マスずつ空ける */
   function drawRot(str,x0,y0,size,k){
-    const cs=[...str], fs=size*0.74, half=size/2, lim=half*0.96, off=(k*size-cs.length*half)/2;
+    const cs=[...str], fs=size*0.74*FR, half=size/2, lim=half*0.96, off=(k*size-cs.length*half)/2;
     pdf.setFontSize(fs*72/25.4);
     cs.forEach((c,j)=>{
       if(c===' ') return;
@@ -2842,8 +2842,8 @@ function buildPdf(){
       pdf.restoreGraphicsState();
     });
   }
-  function drawCh(ch,x0,y0,size){
-    const fs=size*0.82, s=fs/1000;
+  function drawCh(ch,x0,y0,size,sc){
+    const fs=size*0.82*(sc||1), s=fs/1000;
     pdf.setFontSize(fs*72/25.4);
     if(ASC.test(ch)){ const w=pdf.getTextWidth(ch); pdf.text(ch,x0+(size-w)/2,y0+(size-fs)/2+880*s); return; }
     const ex=x0+(size-fs)/2, by=y0+(size-fs)/2+880*s, vp=VP[ch];
@@ -2856,12 +2856,12 @@ function buildPdf(){
   let first=true;
   const newPage=()=>{ if(!first) pdf.addPage(); first=false; };
   const drawCoverTitle=()=>{
-    /* 表紙：題名を本文より2pt大きい約18ptで、ページ中央に縦書き */
-    /* 上は本文の書き出し位置から3字下げ、左右は中央 */
-    const tcs=(18*25.4/72)/0.82, ty=top+3*tcs, maxPer=Math.floor((top+ROWS*cs-ty)/tcs);
+    /* 表紙：題名を16ptで、ページ中央に縦書き。上下の位置・字の間隔・行の間隔は、エディターの画面に合わせる
+       （書き出しは本文のマスの上端から3.375マス下、1行の長さは16.5マス分まで、行送りは字の大きさの1.7倍） */
+    const tfs=16*25.4/72, tcs=tfs/0.82, ty=top+3.375*cs, maxPer=Math.max(1,Math.floor(16.5*cs/tcs));
     const chars=[...(title||'')], colsT=[];
     for(let k=0;k<chars.length;k+=maxPer) colsT.push(chars.slice(k,k+maxPer));
-    const tstep=tcs*1.6, totalW=colsT.length?(colsT.length-1)*tstep+tcs:0, x0=(PW+totalW)/2;
+    const tstep=tfs*1.7, totalW=colsT.length?(colsT.length-1)*tstep+tcs:0, x0=(PW+totalW)/2;
     const y0=ty;
     colsT.forEach((cc,j)=>cc.forEach((ch,r)=>{ if(ch!==' '&&ch!=='　') drawCh(ch,x0-j*tstep-tcs,y0+r*tcs,tcs); }));
   };
@@ -2873,20 +2873,20 @@ function buildPdf(){
     for(let lc=0;lc<PER;lc++){
       const col=cols[p*PER+lc]; if(!col) break;
       const x=right-lc*step-cs;
-      if(col.mark) drawCh('○',x,top,cs);
+      if(col.mark) drawCh('○',x,top,cs,FR);
       if(hnum[p*PER+lc]){ pdf.setFontSize(10); pdf.text(String(hnum[p*PER+lc]),x+cs/2,top-cs*0.45,{align:'center'}); }   /* 柱番号：○の上の余白に */
       const red=p===0&&lc===0&&LL.cv&&notes.coverRed;   /* 表紙のいちばん右の行を朱書にする */
       if(red) pdf.setTextColor(200,40,30);
-      for(const c of col.cells){ if(c.rot) drawRot(c.ch,x,top+c.r*cs,cs,c.k); else if(c.n>1) drawTcy(c.ch,x,top+c.r*cs,cs); else if(c.ch!==' '&&c.ch!=='　') drawCh(c.ch,x,top+c.r*cs,cs); }
+      for(const c of col.cells){ if(c.rot) drawRot(c.ch,x,top+c.r*cs,cs,c.k); else if(c.n>1) drawTcy(c.ch,x,top+c.r*cs,cs); else if(c.ch!==' '&&c.ch!=='　') drawCh(c.ch,x,top+c.r*cs,cs,FR); }
       if(red) pdf.setTextColor(0,0,0);
       for(const rb of LL.ruby) if(rb.c===p*PER+lc){
         /* ルビ：親文字の右側に、親文字の高さの中で均等に並べる */
-        const rc=[...rb.text], rsz=cs*0.38, H=(rb.r1-rb.r0+1)*cs, y0=top+rb.r0*cs;
+        const rc=[...rb.text], rsz=cs*0.38*FR, H=(rb.r1-rb.r0+1)*cs, y0=top+rb.r0*cs;
         const gap=rc.length*rsz<H?H/rc.length:rsz, off=rc.length*rsz<H?0:(H-rc.length*rsz)/2;
         rc.forEach((ch,k)=>drawCh(ch,x+cs*0.9,y0+off+k*gap+(gap-rsz)/2,rsz));
       }
-      if(col.hang.length===1) drawCh(col.hang[0].ch,x,top+ROWS*cs,cs);
-      else if(col.hang.length>1) col.hang.forEach((h,k)=>drawCh(h.ch,x+cs/4,top+ROWS*cs+k*cs/2,cs/2));
+      if(col.hang.length===1) drawCh(col.hang[0].ch,x,top+ROWS*cs,cs,FR);
+      else if(col.hang.length>1) col.hang.forEach((h,k)=>drawCh(h.ch,x+cs/4,top+ROWS*cs+k*cs/2,cs/2,FR));
     }
     /* 登場人物表・あらすじのページには番号を付けず、本文は1から数える */
     if(showPno&&p*PER>=LL.mainCol){ pdf.setFontSize(10); pdf.text(String(p-LL.mainCol/PER+1),PW/2,pnoY,{align:'center'}); }

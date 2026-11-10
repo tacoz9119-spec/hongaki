@@ -567,7 +567,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.38</div>
+    <div class="small">Version 1.39</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -2856,9 +2856,9 @@ function buildPdf(){
   let first=true;
   const newPage=()=>{ if(!first) pdf.addPage(); first=false; };
   const drawCoverTitle=()=>{
-    /* 表紙：題名を16ptで、ページ中央に縦書き。上下の位置・字の間隔・行の間隔は、エディターの画面に合わせる
-       （書き出しは本文のマスの上端から3.375マス下、1行の長さは16.5マス分まで、行送りは字の大きさの1.7倍） */
-    const tfs=16*25.4/72, tcs=tfs/0.82, ty=top+3.375*cs, maxPer=Math.max(1,Math.floor(16.5*cs/tcs));
+    /* 表紙：題名を16ptで、ページ中央に縦書き。書き出しは本文の1字目と同じ高さ。
+       字の間隔と行の間隔はエディターの画面に合わせ、1行の長さは本文の20字分の高さまで、行送りは字の大きさの1.7倍 */
+    const tfs=16*25.4/72, tcs=tfs/0.82, ty=top, maxPer=Math.max(1,Math.floor(ROWS*cs/tcs));
     const chars=[...(title||'')], colsT=[];
     for(let k=0;k<chars.length;k+=maxPer) colsT.push(chars.slice(k,k+maxPer));
     const tstep=tfs*1.7, totalW=colsT.length?(colsT.length-1)*tstep+tcs:0, x0=(PW+totalW)/2;

@@ -567,7 +567,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.36</div>
+    <div class="small">Version 1.37</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -2819,8 +2819,8 @@ function buildPdf(){
   const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
   const ff=pdfFontFile(); pdf.addFileToVFS(ff,fontB64s[ff]); pdf.addFont(ff,'Hongaki','normal','Identity-H'); pdf.setFont('Hongaki','normal');
   pdf.setProperties({title:title||'無題'});
-  /* 文字は約16pt（マス6.88mm）。20字分の高さを上下中央に置き、左右は行間で全体の横幅（198.3mm）を保つ */
-  const PW=297, PH=210, cs=6.88, gridW=198.3, step=(gridW-cs)/(PER-1), top=(PH-ROWS*cs)/2, right=(PW+gridW)/2;
+  /* 文字は12pt（マス約5.16mm）。行と行の間隔（行送り約10.08mm）は、16ptだったときのまま変えず、20字分の高さを上下中央に置く */
+  const PW=297, PH=210, cs0=6.88, gridW=198.3, step=(gridW-cs0)/(PER-1), cs=(12*25.4/72)/0.82, top=(PH-ROWS*cs)/2, right=(PW+gridW)/2-(cs0-cs)/2;
   const pnoY=(top+ROWS*cs+PH)/2+1.2;  /* ページ番号：下余白の中央 */
   /* 縦中横：マスの幅に収まる大きさで、横書きのまま中央に置く */
   function drawTcy(str,x0,y0,size){

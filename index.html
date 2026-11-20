@@ -210,7 +210,8 @@ html.nolint #lint{display:none}
 #sheets{position:relative;display:flex;flex-direction:column;align-items:center;gap:28px;touch-action:manipulation;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
-.page{position:relative;flex:0 0 auto;background:var(--paper);box-shadow:var(--shadow);cursor:text;
+/* マウスのカーソルは、縦書き用の形（I の字を横に倒した形）にする。対応していない環境（iPad など）では、前に書いた cursor:text が使われる */
+.page{position:relative;flex:0 0 auto;background:var(--paper);box-shadow:var(--shadow);cursor:text;cursor:vertical-text;
   width:calc(var(--padx,var(--pad))*2 + var(--step)*19 + var(--cell));height:calc(var(--pad) + var(--cell)*22)}
 .frame{position:absolute;pointer-events:none;border:1.5px solid var(--rule);
   top:calc(var(--pad) - 5px);right:calc(var(--padx,var(--pad)) - 5px);
@@ -574,7 +575,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.43</div>
+    <div class="small">Version 1.44</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

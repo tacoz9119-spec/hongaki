@@ -243,6 +243,8 @@ html.ipadapp{padding-top:0}
 html.ipadapp .bar{position:fixed;top:0;left:0;right:0}
 html.ipadapp header.bar{padding-top:calc(env(safe-area-inset-top,0px) + 8px + max(0px, 22px - env(safe-area-inset-top,0px)))}
 html.ipadapp.focus header.bar{padding-top:0;height:calc(env(safe-area-inset-top,0px) + 14px + max(0px, 26px - env(safe-area-inset-top,0px)))}
+/* 集中モードでも、帯の中に上端の表示（枚数・字数・位置、今いる場面、同期の状態）を出す。帯のうち、画面の上端の安全域より下の部分の高さに合わせ、文字を上下の真ん中に置く */
+html.ipadapp.focus .bar>#topInfo{visibility:visible;height:calc(14px + max(0px, 26px - env(safe-area-inset-top,0px)))}
 html.ipadapp body{padding-top:var(--barh,56px)}
 html.ipadapp .stats{display:none}
 html.ipadapp #topInfo{display:flex;align-items:center;gap:12px;position:absolute;top:env(safe-area-inset-top,0px);left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));
@@ -567,7 +569,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.40</div>
+    <div class="small">Version 1.41</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

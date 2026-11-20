@@ -294,7 +294,7 @@ html.focus.ipad #bFocusOff{top:calc(env(safe-area-inset-top,0px) + 22px)}
 #caret{position:absolute;z-index:5;height:2px;width:calc(var(--cell)*.84);background:var(--caret);pointer-events:none;opacity:.55}
 #caret.on{opacity:1;animation:blink 1.05s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
-@media (prefers-reduced-motion: reduce){#caret.on{animation:none}}
+/* カーソルの点滅は、端末の「視差効果を減らす」（動きを減らす設定）がオンでも止めない。iPadでカーソルの位置を見失わないため */
 
 #ta{position:absolute;z-index:6;writing-mode:horizontal-tb;border:0;padding:0;margin:0;resize:none;overflow:hidden;
   background:transparent;color:transparent;caret-color:transparent;outline:none;pointer-events:none;
@@ -574,7 +574,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.42</div>
+    <div class="small">Version 1.43</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

@@ -287,7 +287,11 @@ html.focus.ipad #bFocusOff{top:calc(env(safe-area-inset-top,0px) + 22px)}
 
 #sel{position:absolute;inset:0;pointer-events:none;z-index:3}
 #sel div{position:absolute;background:var(--sel);border-radius:2px}
-#caret{position:absolute;z-index:5;height:2px;width:calc(var(--cell)*.84);background:var(--accent);pointer-events:none;opacity:.55}
+/* カーソルの色：文字の墨色と見分けやすい青（ダーク表示では明るい青） */
+:root{--caret:#2563EB}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--caret:#6EA8FE} }
+:root[data-theme="dark"]{--caret:#6EA8FE}
+#caret{position:absolute;z-index:5;height:2px;width:calc(var(--cell)*.84);background:var(--caret);pointer-events:none;opacity:.55}
 #caret.on{opacity:1;animation:blink 1.05s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
 @media (prefers-reduced-motion: reduce){#caret.on{animation:none}}
@@ -296,13 +300,14 @@ html.focus.ipad #bFocusOff{top:calc(env(safe-area-inset-top,0px) + 22px)}
   background:transparent;color:transparent;caret-color:transparent;outline:none;pointer-events:none;
   font-family:var(--f-ms);font-weight:var(--f-w);font-size:max(16px,calc(var(--cell)*.78*var(--fs,1)));line-height:1.3;
   -webkit-user-select:text;user-select:text}
-/* iPad：入力欄の文字色を透明にすると、選択中の変換候補まで透明になる。入力欄は普通の色で見せ（確定のたび空に戻る）、カーソルもiPad標準のものを使う */
-html.ipad #ta{writing-mode:vertical-rl;line-height:var(--step);color:var(--ink);caret-color:var(--ink);
+/* iPad：入力欄の文字色を透明にすると、選択中の変換候補まで透明になる。入力欄は普通の色で見せる（確定のたび空に戻る）。
+   カーソルは、iPad標準のもの（幅が変えられず短い）は見えなくし、Macと同じアプリのカーソル（字の幅の青い線）を出す。変換中だけはiPad標準のカーソルを青で出す */
+html.ipad #ta{writing-mode:vertical-rl;line-height:var(--step);color:var(--ink);caret-color:transparent;
   /* 変換中の文字も原稿と同じ1字1マスの間隔で並べる */
   --taf:max(16px,calc(var(--cell)*.78*var(--fs,1)));letter-spacing:calc(var(--cell) - var(--taf));padding-top:calc((var(--cell) - var(--taf))/2)}
-html.ipad #caret{display:none}
+html.ipad #sheets:has(#ta.composing) #caret{display:none}
 #ta.clip{color:transparent!important}
-html.ipad #ta.composing{background:var(--paper);color:var(--ink)}
+html.ipad #ta.composing{background:var(--paper);color:var(--ink);caret-color:var(--caret)}
 #ime{position:absolute;z-index:7;min-width:var(--cell);writing-mode:vertical-rl;text-orientation:mixed;white-space:pre-wrap;line-break:anywhere;word-break:break-all;pointer-events:none;
   font-family:var(--f-ms);font-weight:var(--f-w);font-size:calc(var(--cell)*.78*var(--fs,1));line-height:var(--cell);letter-spacing:calc(var(--cell) - var(--cell)*.78*var(--fs,1));
   color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent)}
@@ -569,7 +574,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.41</div>
+    <div class="small">Version 1.42</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

@@ -385,21 +385,26 @@ html.nogrid .col,html.nogrid .frame{display:none}
 .tools button.ico{min-width:44px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center}
 .tools button.ico svg{display:block}
 .tools button.pg{min-width:36px;padding:0 6px}
-/* 上のボタンは、左パネルのタブと同じ大きさ（高さ34px・文字13px）にそろえる */
-.tools button{min-height:34px;font-size:13px}
+/* 上のボタンは、左パネルのタブと同じ大きさ（高さ30px・文字13px）にそろえる */
+.tools button{min-height:30px;font-size:13px;border-radius:6px}
 .panel button{font-size:13px}   /* 「外見」「その他」のパネルのボタンも13pxにそろえる */
-.tools .seg button{min-width:64px}
-.tools button.ico{min-width:40px}
-.tools button.ico svg{width:18px;height:18px}
-.tools button.pg{min-width:34px;padding:0 5px}
+.tools .seg{border-radius:6px}
+.tools .seg button{min-width:58px}
+.tools button.ico{min-width:36px;padding:0 8px}
+.tools button.ico svg{width:16px;height:16px}
+.tools button.pg{min-width:30px;padding:0 4px}
+/* 左パネルのタブと、検索タブのボタンも、上のボタンと同じ高さにする */
+.tabs{border-radius:6px}
+.tabs button{min-height:30px}
+.frow button{min-height:30px}
 /* 幅の狭い画面では、題名の欄とボタンを少し詰めて、ページ送りのボタンまで見えるようにする */
 @media (max-width:1240px){
   #title{flex-basis:min(17.5em,22vw)}
   .tools{gap:4px}
   .tools button{padding:0 9px}
   .tools .seg button{min-width:52px}
-  .tools button.ico{min-width:38px;padding:0 7px}
-  .tools button.pg{min-width:34px;padding:0 5px}
+  .tools button.ico{min-width:34px;padding:0 6px}
+  .tools button.pg{min-width:30px;padding:0 4px}
   .sep{margin:6px 2px}
 }
 @media (max-width:1100px){ #title{flex-basis:16vw} html:not(.ipadapp) #title{flex-basis:11vw;min-width:80px} }
@@ -576,7 +581,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.45</div>
+    <div class="small">Version 1.46</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

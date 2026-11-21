@@ -387,7 +387,7 @@ html.nogrid .col,html.nogrid .frame{display:none}
 .tools button.pg{min-width:36px;padding:0 6px}
 /* 上のボタンは、左パネルのタブと同じ大きさ（高さ30px・文字13px）にそろえる */
 .tools button{min-height:30px;font-size:13px;border-radius:6px}
-.panel button{font-size:13px}   /* 「外見」「その他」のパネルのボタンも13pxにそろえる */
+.panel button{font-size:13px;min-height:30px;padding:0 10px;border-radius:6px}   /* 「外見」「その他」などのパネルのボタンも、上のボタンと同じ高さ30px・文字13pxにそろえる */
 .tools .seg{border-radius:6px}
 .tools .seg button{min-width:58px}
 .tools button.ico{min-width:36px;padding:0 8px}
@@ -581,7 +581,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.46</div>
+    <div class="small">Version 1.47</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

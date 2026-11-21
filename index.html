@@ -131,8 +131,9 @@ main{flex:1 1 auto;min-width:0;padding-left:max(16px,env(safe-area-inset-left,0p
 #olList .grip{flex:0 0 26px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:grab;touch-action:none;border-radius:6px;opacity:.55}
 #olList li:hover .grip,#olList li.cur .grip{opacity:1}
 #olList .grip:active{cursor:grabbing}
-#olList li.dragging{opacity:.45}
-#olList .dropline{position:absolute;left:0;right:0;height:2px;background:var(--accent);border-radius:1px;pointer-events:none}
+/* 並べ替え：つかんだ行は少し浮かせて指やマウスについて動かし、ほかの行はなめらかにずらして、入る位置にすき間を空ける */
+#olList.sorting li{transition:transform .16s ease}
+#olList.sorting li.dragging{transition:none;position:relative;z-index:2;background:var(--paper);border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.12),0 8px 20px rgba(0,0,0,.14)}
 
 #olList li.cur .t{font-weight:600}
 #olList li.cur .n{color:var(--accent);font-weight:700}
@@ -575,7 +576,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.44</div>
+    <div class="small">Version 1.45</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
@@ -2548,31 +2549,54 @@ function moveScene(k,t){
   toast('「'+(items[k].text||'柱')+'」の場面を移しました（「元に戻す」で戻せます）',3500);
 }
 {
+  /* つかんだときの各行の位置（一覧の中の座標）と高さを覚えておき、指やマウスの動きとスクロール量から、
+     つかんだ行の位置と、並べ替えたあとの位置（to）を計算する */
   let drag=null;
   const list=$('olList');
   const scroller=el=>{ for(let e=el;e;e=e.parentElement){ const o=getComputedStyle(e).overflowY; if((o==='auto'||o==='scroll')&&e.scrollHeight>e.clientHeight) return e; } return null; };
-  const targetAt=y=>{ const lis=[...list.children]; for(let j=0;j<lis.length;j++){ const r=lis[j].getBoundingClientRect(); if(y<r.top+r.height/2) return j; } return lis.length; };
-  const placeLine=t=>{ const lis=[...list.children], lr=list.getBoundingClientRect();
-    const y=t<lis.length?lis[t].getBoundingClientRect().top:lis[lis.length-1].getBoundingClientRect().bottom;
-    drag.line.style.top=(y-lr.top-1)+'px'; };
+  const scrollTop=()=>drag.sc?drag.sc.scrollTop:0;
+  const update=()=>{
+    const d=drag, dy=(d.y-d.y0)+(scrollTop()-d.s0);
+    d.lis[d.k].style.transform='translateY('+dy+'px)';
+    const mid=d.top[d.k]+d.h[d.k]/2+dy;   /* つかんだ行の真ん中 */
+    let to=d.k;
+    for(let j=d.k+1;j<d.lis.length;j++){ if(mid>d.top[j]+d.h[j]/2) to=j; else break; }
+    if(to===d.k) for(let j=d.k-1;j>=0;j--){ if(mid<d.top[j]+d.h[j]/2) to=j; else break; }
+    d.to=to;
+    d.lis.forEach((li,j)=>{ if(j===d.k) return;
+      const sh=(j>d.k&&j<=to)?-d.H:(j<d.k&&j>=to)?d.H:0;
+      li.style.transform=sh?'translateY('+sh+'px)':''; });
+  };
+  const clear=d=>{ list.classList.remove('sorting'); d.lis.forEach(li=>{ li.style.transform=''; li.classList.remove('dragging'); }); };
   list.addEventListener('pointerdown',e=>{
     const g=e.target.closest('.grip'); if(!g) return;
     e.preventDefault(); e.stopPropagation();
-    const li=g.closest('li'), k=[...list.children].indexOf(li); if(k<0) return;
-    const line=document.createElement('div'); line.className='dropline'; list.appendChild(line);
-    drag={k,t:k,li,line,id:e.pointerId,sc:scroller(list),y:e.clientY};
-    li.classList.add('dragging'); g.setPointerCapture(e.pointerId); placeLine(k);
+    const lis=[...list.children].filter(x=>x.tagName==='LI'), li=g.closest('li'), k=lis.indexOf(li); if(k<0) return;
+    const gap=parseFloat(getComputedStyle(list).rowGap)||0;
+    drag={k,to:k,lis,id:e.pointerId,sc:scroller(list),y0:e.clientY,y:e.clientY,
+      top:lis.map(x=>x.offsetTop),h:lis.map(x=>x.offsetHeight),H:li.offsetHeight+gap};
+    drag.s0=scrollTop();
+    list.classList.add('sorting'); li.classList.add('dragging'); g.setPointerCapture(e.pointerId);
   });
   list.addEventListener('pointermove',e=>{
     if(!drag||e.pointerId!==drag.id) return;
-    drag.y=e.clientY; drag.t=targetAt(e.clientY); placeLine(drag.t);
+    drag.y=e.clientY;
     /* 一覧の上下の端に近づいたら、一覧をスクロールする */
     if(drag.sc){ const r=drag.sc.getBoundingClientRect(); if(e.clientY<r.top+30) drag.sc.scrollTop-=12; else if(e.clientY>r.bottom-30) drag.sc.scrollTop+=12; }
+    update();
   });
   const end=e=>{
     if(!drag||e.pointerId!==drag.id) return;
-    const d=drag; drag=null; d.li.classList.remove('dragging'); d.line.remove();
-    if(e.type==='pointerup') moveScene(d.k,d.t);
+    const d=drag; drag=null;
+    if(e.type==='pointerup'&&d.to!==d.k){
+      /* ずらした行が元の位置へ戻る動きを見せずに、並べ替えた一覧に描き直す */
+      d.lis.forEach(li=>li.style.transition='none'); clear(d); void list.offsetHeight; d.lis.forEach(li=>li.style.transition='');
+      moveScene(d.k,d.to>d.k?d.to+1:d.to);
+    } else {
+      /* 元の位置のまま離したときは何も変えず、ずらした行もなめらかに元へ戻す */
+      d.lis[d.k].classList.remove('dragging'); d.lis.forEach(li=>{ li.style.transform=''; });
+      setTimeout(()=>{ if(!drag) list.classList.remove('sorting'); },180);
+    }
   };
   list.addEventListener('pointerup',end); list.addEventListener('pointercancel',end);
   list.addEventListener('click',e=>{ if(e.target.closest('.grip')){ e.preventDefault(); e.stopPropagation(); } },true);

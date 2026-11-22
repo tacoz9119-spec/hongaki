@@ -70,6 +70,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bar);border-bottom:1px solid var(--edge);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px;
   display:flex;align-items:center;gap:10px}
+/* パソコンで見たときの帯の高さを、シリーズの4つのアプリで線を含めて55pxにそろえる（上下の余白11px）。iPadの指定と集中モードは、このあとの指定が優先される */
+html:not(.ipad) .bar{padding-block:11px}
 #title{flex:0 0 min(17.5em,38vw);min-width:90px;font-family:var(--f-ui);font-size:18px;font-weight:400;background:transparent;border:0;
   border-bottom:1px solid var(--edge);color:var(--ink);padding:4px 0;text-overflow:ellipsis}
 #title::placeholder{color:var(--muted);font-weight:400}
@@ -581,7 +583,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.47</div>
+    <div class="small">Version 1.48</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

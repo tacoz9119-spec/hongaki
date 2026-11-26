@@ -70,8 +70,6 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bar);border-bottom:1px solid var(--edge);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px;
   display:flex;align-items:center;gap:10px}
-/* パソコンで見たときの帯の高さを、シリーズの4つのアプリで線を含めて55pxにそろえる（上下の余白11px）。iPadの指定と集中モードは、このあとの指定が優先される */
-html:not(.ipad) .bar{padding-block:11px}
 #title{flex:0 0 min(17.5em,38vw);min-width:90px;font-family:var(--f-ui);font-size:18px;font-weight:400;background:transparent;border:0;
   border-bottom:1px solid var(--edge);color:var(--ink);padding:4px 0;text-overflow:ellipsis}
 #title::placeholder{color:var(--muted);font-weight:400}
@@ -423,6 +421,76 @@ html.ipadapp.syncwait main{opacity:1}   /* iPadのアプリでは、原稿を薄
 .tabhead .lbl{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em}
 #nt-cast{min-height:10.3em}
 .clink{margin-left:8px;font-weight:400;letter-spacing:0;color:var(--muted)}   /* 人物一覧だけ、ほかの欄より約2.5行分高く */
+/* ===== シリーズ共通の大きさの基準（Kousei 1.41 と同じ。Version 1.49） =====
+   押すもの・入力欄は高さ36px、文字は題名18px（太字）・本文15px・補足12px、角の丸みは外枠14px・中の枠10px・入力欄と一覧8px・ボタン6px。
+   原稿用紙の上に描くもの（本文・升目・ルビ・柱番号・ページ番号・表紙）は、作業の中心なので例外として変えない */
+.bar{padding-block:9px}   /* 36pxのボタン＋上下9px＋線1px＝55px（iPadのホーム画面のアプリの指定は、このあとの指定が優先される） */
+#title{height:36px;box-sizing:border-box}   /* 題名の欄は例外：下線だけの欄で、文字は18px（太さはふつう）のまま */
+.stats{font-size:12px} #sSave{font-size:12px}
+html.ipadapp #topInfo{font-size:12px}
+/* 上部の道具のボタン */
+.tools button{min-height:36px;font-size:15px}
+.tools button:not(.ico){padding-bottom:2px}   /* 文字を1px上げて、見た目の上下の中央にそろえる */
+.tools button.ico,.tools button.pg{width:36px;min-width:36px;padding:0}
+.tools button.ico svg{width:16px;height:16px}
+/* 切り替え（柱・ト書き・セリフ、左パネルのタブ）：外枠1px、区切り線でつなぎ、高さ36px・文字15px・角6px */
+.tools .seg,.tabs{height:36px;box-sizing:border-box;border-radius:6px}
+.tools .seg button,.tabs button{min-height:0;height:100%;font-size:15px!important;font-weight:400;padding-bottom:2px}
+/* 左パネル */
+.tabhead .lbl,.nbox label{font-size:12px}
+.nbox textarea{font-size:15px;border-radius:8px}
+#olList button{font-size:12px}
+#olList .t{font-size:15px}
+#olList .n{font-size:12px;padding-top:2px}
+#olList .m{font-size:12px}
+#pplList .pn{min-height:36px}
+#pplList .nm{font-size:15px}
+#pplList .m{font-size:12px}
+#lList .m,#fList .m,#rList .m{font-size:12px}
+#lList .k{font-size:15px}
+#fList .s{font-size:15px}
+#rList .r,#rList .gh{font-size:15px}
+#lList .lfix{min-height:36px;font-size:15px!important;padding:0 12px 2px}
+.fbox input{height:36px;font-size:15px;border-radius:8px}
+.frow button{min-height:36px;font-size:15px!important;padding:0 12px 2px;border-radius:6px}
+.rmode button{min-height:36px!important;font-size:15px!important;padding:0 12px 2px!important}
+/* 説明文は15px。件数・バージョンなどの補足は12px */
+.small{font-size:15px}
+.tabhead .small,.small.note12{font-size:12px}
+/* パネル（外見・その他・原稿など） */
+.panel{border-radius:14px}
+.panel h2{font-size:18px;font-weight:700}
+.pgroup h3{font-size:15px;font-weight:700;letter-spacing:0;color:var(--ink)}
+.panel button{min-height:36px;font-size:15px;padding:0 12px 2px;border-radius:6px}
+.chk{min-height:36px}
+.pgroup .chk+.chk{margin-top:-8px}   /* チェック項目は36pxの行として、すき間なく並べる */
+.sybox input,.rbread{height:36px;box-sizing:border-box;font-size:15px;padding:0 10px;border-radius:8px}
+#docList,#histList,#histDead{border-radius:10px}
+#cmpBody .hunk{border-radius:10px}
+#cmpBody .hh button{min-height:36px}
+.cmpsum{font-size:15px}
+#fbText{font-size:15px;border-radius:8px}
+/* 浮かんで出る枠 */
+#ctxMenu{border-radius:10px}
+#ctxMenu button{min-height:36px;font-size:15px;padding-top:0;padding-bottom:0}
+#toast{font-size:15px;border-radius:10px}
+/* 集中モードを終えるボタン */
+#bFocusOff{width:36px;height:36px;border-radius:6px}
+#bFocusOff svg{width:16px;height:16px}
+/* iPhone：入力欄の文字が16px未満だと、タップしたときに画面が拡大されて戻らないため、16pxにする */
+@media (max-width:719px){ .fbox input,.sybox input,.rbread,.nbox textarea,#fbText{font-size:16px} }
+.tabs button{padding:0 4px 2px;white-space:nowrap}   /* 「柱一覧」が折り返さないよう、左右の余白を詰める */
+/* 幅の狭い画面（Macの小さいウィンドウなど）：ボタンが36px・15pxになった分、題名の欄とボタンの余白を詰めて、道具のボタンを1行に収める */
+@media (max-width:1240px){
+  html:not(.ipadapp) #title{flex-basis:15vw}
+  .tools button{padding:0 8px 2px}
+  .tools .seg button{min-width:48px}
+}
+@media (max-width:1100px){
+  html:not(.ipadapp) #title{flex-basis:8vw;min-width:72px}
+  .tools{gap:3px}
+  .sep{margin:6px 1px}
+}
 </style>
 <script src="firebase-config.js"></script>
 <script src="firebase.js"></script>
@@ -582,8 +650,8 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
         </div>
       </div>
     </div>
-    <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.48</div>
+    <div class="small note12">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
+    <div class="small note12">Version 1.49</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

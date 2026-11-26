@@ -492,6 +492,12 @@ html.ipadapp #topInfo{font-size:12px}
   .tools{gap:4px}
   .sep{margin:6px 2px}
 }
+/* 外見パネルなどの選択ボタン（大・中・小、書体、太さ、配色）と、ルビの一覧の並べ方を、Bunpitu と同じ切り替えの形にする：
+   外枠1px・角6pxで囲み、ボタンどうしは区切り線でつなぎ、すき間をあけない。外枠の高さ32px、文字14px、左右の余白13px */
+.pbtns[role="group"]{display:inline-flex;flex-wrap:nowrap;gap:0;align-self:flex-start;border:1px solid var(--edge);border-radius:6px;overflow:hidden;width:max-content;max-width:100%}
+.pbtns[role="group"] button,.rmode button{border:0!important;border-radius:0!important;border-left:1px solid var(--edge)!important;min-height:30px!important;font-size:14px!important;padding:0 13px!important;background:var(--paper)}
+.pbtns[role="group"] button:first-child,.rmode button:first-child{border-left:0!important}
+.pbtns[role="group"] button[aria-pressed="true"],.rmode button[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
 </style>
 <script src="firebase-config.js"></script>
 <script src="firebase.js"></script>
@@ -652,7 +658,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.50</div>
+    <div class="small">Version 1.51</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

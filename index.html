@@ -498,6 +498,17 @@ html.ipadapp #topInfo{font-size:12px}
 .pbtns[role="group"] button,.rmode button{border:0!important;border-radius:0!important;border-left:1px solid var(--edge)!important;min-height:30px!important;font-size:14px!important;padding:0 13px!important;background:var(--paper)}
 .pbtns[role="group"] button:first-child,.rmode button:first-child{border-left:0!important}
 .pbtns[role="group"] button[aria-pressed="true"],.rmode button[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
+/* ===== シリーズ共通の文字の大きさのルール（Tebikae 1.26 と同じ。Version 1.52） =====
+   枠のあるボタン（切り替えを含む）13、枠のない押すもの・入力欄・見出し14、題名18、説明文・状態・文字のリンク12。
+   お知らせの文字は、すぐ消える表示で読みやすさを優先して14のまま。原稿用紙の文字は例外 */
+.tools button{font-size:13px}
+.tools .seg button,.tabs button{font-size:13px!important}
+.frow button,.rmode button{font-size:13px!important}
+.pbtns[role="group"] button{font-size:13px!important}
+#lList .lfix{font-size:13px!important}
+.panel button{font-size:13px}
+/* 「パスワードを忘れた」は、枠のない文字のリンク（12px）にする */
+.panel button.lnk{min-height:0;padding:0;border:0;border-radius:0;background:transparent;color:var(--accent);text-decoration:underline;font-size:12px;align-self:center}
 </style>
 <script src="firebase-config.js"></script>
 <script src="firebase.js"></script>
@@ -645,7 +656,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
         <div class="pbtns">
           <button id="syLogin" type="button" class="solid">ログイン</button>
           <button id="sySignup" type="button">新規登録</button>
-          <button id="syForgot" type="button">パスワードを忘れた</button>
+          <button id="syForgot" type="button" class="lnk">パスワードを忘れた</button>
         </div>
         <div class="small err" id="syMsg" role="status"></div>
       </div>
@@ -658,7 +669,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.51</div>
+    <div class="small">Version 1.52</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

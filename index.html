@@ -351,7 +351,7 @@ html.ipad #ta.composing{background:var(--paper);color:var(--ink);caret-color:var
 #docList li+li{border-top:1px solid var(--edge)}
 #docList button{width:100%;border:0;border-radius:0;min-height:56px;padding:10px 14px;text-align:left;display:grid;
   grid-template-columns:1fr auto;gap:2px 12px;align-items:center;background:var(--paper)}
-#docList .t{font-family:var(--f-text);font-size:17px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#docList .t{font-family:var(--f-ui);font-size:14px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #docList .m{grid-column:1;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 #docList .chip{grid-row:1/3;grid-column:2;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--ink);color:var(--paper)}
 #docList li.cur button{background:var(--desk)}
@@ -500,7 +500,7 @@ html.ipadapp #topInfo{font-size:12px}
 .pbtns[role="group"] button[aria-pressed="true"],.rmode button[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
 /* ===== シリーズ共通の文字の大きさのルール（Tebikae 1.26 と同じ。Version 1.52） =====
    枠のあるボタン（切り替えを含む）13、枠のない押すもの・入力欄・見出し14、題名18、説明文・状態・文字のリンク12。
-   お知らせの文字は、すぐ消える表示で読みやすさを優先して14のまま。原稿用紙の文字は例外 */
+   お知らせの文字は、すぐ消える表示で読みやすさを優先して14のまま。原稿用紙の文字は例外。原稿の一覧の原稿名も、ほかの一覧の行と同じゴシック体14（Version 1.53） */
 .tools button{font-size:13px}
 .tools .seg button,.tabs button{font-size:13px!important}
 .frow button,.rmode button{font-size:13px!important}
@@ -669,7 +669,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.52</div>
+    <div class="small">Version 1.53</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

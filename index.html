@@ -369,7 +369,7 @@ html.nopno .pno{display:none}
 #syFields:empty{display:none}
 .small.err{color:var(--accent)}
 
-#sizeSel button{min-width:64px}
+#sizeSel button{min-width:calc(2em + 26px)}   /* 「大・中・小」は1文字だが、幅は2文字分＋左右の余白にして、「細め・標準・太め」と同じ幅にそろえる */
 #sizeSel button[aria-pressed="true"],#themeSel button[aria-pressed="true"],#fontSel button[aria-pressed="true"],#weightSel button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 
 html.nogrid .col,html.nogrid .frame{display:none}
@@ -644,7 +644,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
     <div class="pgroup">
       <h3>表紙・登場人物表・あらすじ（この原稿）</h3>
       <label class="chk"><input type="checkbox" id="pCover"> 表紙を付ける（題名をページ中央に縦書き）</label>
-      <label class="chk"><input type="checkbox" id="pCoverRed"> 表紙のいちばん右の行（コンクール名など）を朱書（赤文字）にする</label>
+      <label class="chk"><input type="checkbox" id="pCoverRed"> 表紙のいちばん右の行を朱書（赤文字）にする</label>
       <label class="chk"><input type="checkbox" id="pCast"> 登場人物表のページを付ける</label>
       <label class="chk"><input type="checkbox" id="pSyn"> あらすじのページを付ける</label>
       <div class="small">表紙・登場人物表・あらすじの順に本文の前に置き、それぞれ新しいページから始めます。ページ番号は付けず、本文の枚数にも数えません。登場人物表は、人物パネルの「人物一覧」と連動します。あらすじを外すと、その内容も消えます（「元に戻す」で復元できます）。</div>
@@ -671,7 +671,7 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
       </div>
     </div>
     <div class="small aux">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small aux">Version 1.56</div>
+    <div class="small aux">Version 1.57</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>

@@ -463,8 +463,8 @@ html.ipadapp #topInfo{font-size:12px}
 .panel h2{font-size:18px;font-weight:700}
 .pgroup h3{font-size:14px;font-weight:700;letter-spacing:0;color:var(--ink)}
 .panel button{min-height:32px;font-size:14px;padding:0 12px;border-radius:6px}
-.chk{min-height:32px;font-size:14px}
-.pgroup .chk+.chk{margin-top:-8px}   /* チェック項目は32pxの行として、すき間なく並べる */
+.chk{min-height:28px;font-size:14px}
+.pgroup .chk+.chk{margin-top:-8px}   /* チェック項目は28pxの行として、すき間なく並べる（四角の縁どうしのすき間8px。切り替えを2段に並べたときと同じ） */
 .sybox input,.rbread{height:32px;box-sizing:border-box;font-size:14px;padding:0 10px;border-radius:8px}
 #docList,#histList,#histDead{border-radius:10px}
 #histList .t,#histDead .t{font-size:14px}
@@ -507,6 +507,8 @@ html.ipadapp #topInfo{font-size:12px}
 .pbtns[role="group"] button{font-size:13px!important}
 #lList .lfix{font-size:13px!important}
 .panel button{font-size:13px}
+/* 「その他」の下の「画面とPDFの書体」と「Version」の2行は、間を4pxに詰める（パネルの部品どうしの間隔16pxから12px詰める） */
+.panel>.small.aux+.small.aux{margin-top:-12px}
 /* 「パスワードを忘れた」は、枠のない文字のリンク（12px）にする */
 .panel button.lnk{min-height:0;padding:0;border:0;border-radius:0;background:transparent;color:var(--accent);text-decoration:underline;font-size:12px;align-self:center}
 </style>
@@ -668,8 +670,8 @@ try{ ['theme','font','weight','focus','size','size2','tab','pno','lint','grid'].
         </div>
       </div>
     </div>
-    <div class="small">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
-    <div class="small">Version 1.53</div>
+    <div class="small aux">画面とPDFの書体：Noto Serif JP・Noto Sans JP（SIL Open Font License 1.1）</div>
+    <div class="small aux">Version 1.54</div>
   </div>
 </div>
 <div class="scrim" id="manPanel" hidden>
